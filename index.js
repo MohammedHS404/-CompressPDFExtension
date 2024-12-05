@@ -83,11 +83,12 @@ async function compressPDF(pdfUrl, filename) {
 }
 
 function showProgress(isComplete, current, total) {
-  console.log("Progress:", current, total);
+  console.log(`Progress: ${current} / ${total}`);
 }
 
 function updateStatus(status) {
-  console.log("Status:", status);
+  const statusElement = document.getElementById("status");
+  statusElement.textContent = status;
 }
 
 async function loadPDFData(response) {
@@ -209,7 +210,7 @@ function createStatusHandler(progressCallback, statusUpdateCallback) {
 }
 
 function loadWasmScript(Module, reject) {
-  Module.setStatus("Loading Postscript Converter...");
+  Module.setStatus("Loading ghost script...");
   loadScript("gs-worker.js")
     .then(() => console.log("Script loaded successfully"))
     .catch((error) =>

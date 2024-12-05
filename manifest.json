@@ -5,12 +5,6 @@
     "action": {
         "default_popup": "index.html"
     },
-    "background": {
-        "service_worker": "./background-worker.js"
-    },
-    "permissions": [
-        "storage"
-    ],
     "web_accessible_resources": [
         {
             "resources": [
