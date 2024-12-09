@@ -1,0 +1,27 @@
+{
+    "manifest_version": 3,
+    "name": "Compress PDF Extraction background",
+    "version": "1.0",
+    "action": {
+        "default_popup": "index.html"
+    },
+    "web_accessible_resources": [
+        {
+            "resources": [
+                "./background-worker.js",
+                "./gs-wasm.js",
+                "./gs-wasm.wasm"
+            ],
+            "matches": [
+                "<all_urls>"
+            ]
+        }
+    ],
+    "content_security_policy": {
+        "extension_pages": "script-src 'self' 'wasm-unsafe-eval'; object-src 'self'"
+    },
+    "permissions": [
+        "webRequest",
+        "storage"
+    ]
+}
