@@ -100,19 +100,6 @@ function configureDownloadLink(link, url, filename) {
   link.hidden = false;
 }
 
-function loadScript(url) {
-  return new Promise((resolve, reject) => {
-    const script = document.createElement("script");
-    script.type = "text/javascript";
-    script.src = url;
-
-    script.onload = resolve;
-    script.onerror = () => reject(new Error(`Failed to load script: ${url}`));
-
-    document.head.appendChild(script);
-  });
-}
-
 function _GSPS2PDF(dataStruct) {
   return new Promise((resolve, reject) => {
     const worker = new Worker(chrome.runtime.getURL("background-worker.js"), {
@@ -129,76 +116,4 @@ function _GSPS2PDF(dataStruct) {
 
     worker.postMessage({ data: dataStruct, target: "wasm" });
   });
-}
-
-var Module;
-
-function runWasmConverter(
-  arrayBuffer,
-  dataStruct,
-  progressCallback,
-  statusUpdateCallback
-) {
-  return new Promise((resolve, reject) => {
-    Module = {
-      preRun: [() => FS.writeFile("input.pdf", new Uint8Array(arrayBuffer))],
-      postRun: [() => resolveOutputFile(dataStruct, resolve, reject)],
-      arguments: [
-        "-sDEVICE=pdfwrite",
-        "-dCompatibilityLevel=1.4",
-        "-dPDFSETTINGS=/ebook",
-        "-DNOPAUSE",
-        "-dQUIET",
-        "-dBATCH",
-        "-sOutputFile=output.pdf",
-        "input.pdf",
-      ],
-      print: statusUpdateCallback,
-      printErr: (text) => {
-        console.error("Error:", text);
-        statusUpdateCallback("Error: " + text);
-      },
-      setStatus: createStatusHandler(progressCallback, statusUpdateCallback),
-      noExitRuntime: 1,
-    };
-
-    loadWasmScript(Module, reject);
-  });
-}
-
-function resolveOutputFile(dataStruct, resolve, reject) {
-  try {
-    const outputData = FS.readFile("output.pdf", { encoding: "binary" });
-    const blob = new Blob([outputData], { type: "application/octet-stream" });
-    const pdfDataURL = window.URL.createObjectURL(blob);
-
-    resolve({ pdfDataURL, fileName: dataStruct.filename });
-  } catch (error) {
-    reject(new Error("Error reading output file: " + error.message));
-  }
-}
-
-function createStatusHandler(progressCallback, statusUpdateCallback) {
-  return function (text) {
-    const match = text.match(/([^(]+)\((\d+(\.\d+)?)\/(\d+)\)/);
-    if (match) {
-      progressCallback(
-        false,
-        parseInt(match[2]) * 100,
-        parseInt(match[4]) * 100
-      );
-    } else {
-      progressCallback(true, 0, 0);
-    }
-    statusUpdateCallback(text);
-  };
-}
-
-function loadWasmScript(Module, reject) {
-  Module.setStatus("Loading ghost script...");
-  loadScript("gs-worker.js")
-    .then(() => console.log("Script loaded successfully"))
-    .catch((error) =>
-      reject(new Error("Failed to load script: " + error.message))
-    );
 }
